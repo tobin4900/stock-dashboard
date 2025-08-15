@@ -11,7 +11,7 @@ A sleek stock market dashboard with a left-panel company list and a rich, intera
 - Interactive Chart.js line chart with hover and click highlight.
 - Key analytics: 52-week high/low, average volume, volatility, 7-day MA, and a simple next-day price prediction (linear trend).
 - Daily caching to SQLite to reduce API hits and speed up responses.
-- Fully responsive “black & gold” UI.
+- Fully responsive “black & gold” UI
 
 ## Tech Stack
 **Frontend:** HTML, CSS, JavaScript, Chart.js  
