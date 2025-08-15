@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite database
+*.db
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Node modules (if you add any JS deps later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db

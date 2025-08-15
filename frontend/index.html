@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockInsight Pro — Black & Gold</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --gold: #d4af37;
+      --gold-light: #e0c96f;
+      --text-light: #f5f5f5;
+      --text-secondary: #c0c0c0;
+      --shadow-dark: rgba(0, 0, 0, 0.8);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 20px;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 32px;
+      max-width: 1400px;
+      margin: auto;
+    }
+    .header {
+      grid-column: 1 / -1;
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 28px;
+    }
+    .logo {
+      font-size: 30px; font-weight: 700; color: var(--gold); letter-spacing: 1px;
+    }
+    .last-updated {
+      font-size: 14px; color: var(--text-secondary);
+    }
+    #company-list {
+      background: var(--bg-secondary); border-radius: 12px; padding: 20px;
+      height: calc(100vh - 180px); overflow-y: auto; box-shadow: 0 8px 24px var(--shadow-dark);
+    }
+    .company-list-header h3 {
+      margin-bottom: 16px; font-weight: 700; color: var(--gold-light);
+      border-bottom: 1px solid #333; padding-bottom: 8px;
+    }
+    .company {
+      background: #272727; padding: 14px 16px; margin-bottom: 12px;
+      border-radius: 8px; display: flex; justify-content: space-between;
+      cursor: pointer; border-left: 4px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .company:hover {
+      background: var(--gold); color: var(--bg-dark); transform: translateX(3px);
+    }
+    .company.active {
+      background: var(--gold); color: var(--bg-dark);
+      border-left-color: var(--gold-light);
+      box-shadow: 0 5px 20px var(--gold-light);
+    }
+    .company-name {
+      font-weight: 600; flex: 1; white-space: normal; overflow: visible;
+    }
+    .company-price {
+      font-weight: 600; text-align: right;
+    }
+    .up { color: #4ade80; }
+    .down { color: #f87171; }
+    .content {
+      display: flex; flex-direction: column; gap: 32px;
+    }
+    .card {
+      background: var(--bg-secondary); border-radius: 12px; padding: 32px;
+      box-shadow: 0 8px 24px var(--shadow-dark); transition: box-shadow 0.3s ease;
+    }
+    .card:hover {
+      box-shadow: 0 12px 40px var(--gold-light);
+    }
+    .stock-header h2 {
+      font-size: 28px; color: var(--gold); margin-bottom: 6px;
+    }
+    .stock-price {
+      font-size: 40px; font-weight: 700; color: var(--text-light);
+    }
+    .stock-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 20px; margin-top: 28px;
+    }
+    .metric {
+      background: #373737; padding: 16px; border-radius: 10px;
+      text-align: center; transition: 0.3s;
+    }
+    .metric:hover {
+      background: var(--gold-light); color: var(--bg-dark);
+    }
+    .metric-label {
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .metric-value {
+      font-size: 18px; font-weight: 600; margin-top: 4px;
+      word-break: break-word;
+    }
+    /* New: Badge for Next Day Prediction */
+    .prediction-badge {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 6px 12px;
+      background: var(--gold-light);
+      color: var(--bg-dark);
+      font-weight: 600;
+      border-radius: 8px;
+      font-size: 16px;
+      max-width: 100%;
+      text-align: center;
+      overflow-wrap: break-word;
+    }
+    .chart-container {
+      margin-top: 36px; padding: 16px;
+      background: radial-gradient(circle at top, #1a1a1a 0%, #0f0f0f 100%);
+      border: 1px solid #333; border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 14px;
+    }
+    th, td { padding: 14px 16px; }
+    thead th {
+      background: #333; color: var(--gold-light); text-align: left;
+    }
+    tbody td {
+      background: #1f1f1f; color: var(--text-light);
+    }
+    tbody tr:hover td {
+      background: var(--gold); color: var(--bg-dark);
+    }
+    .loader {
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top: 4px solid var(--gold-light);
+      border-radius: 50%; width: 28px; height: 28px;
+      animation: spin 1s linear infinite; margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
+    }
+    @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">StockInsight Pro</div>
+      <div class="last-updated" id="last-updated">Loading...</div>
+    </div>
+
+    <div id="company-list">
+      <div class="company-list-header"><h3>Companies</h3></div>
+      <div id="companies-loading" class="loader"></div>
+    </div>
+
+    <div class="content">
+      <div class="card" id="stock-card" style="display: none;">
+        <div class="stock-header">
+          <h2 id="stock-title">Select a Company</h2>
+          <div class="stock-price" id="stock-price"></div>
+        </div>
+        <div class="stock-metrics">
+          <div class="metric">
+            <div class="metric-label">Change</div>
+            <div class="metric-value" id="change-metric"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">52W High</div>
+            <div class="metric-value" id="high-metric"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">52W Low</div>
+            <div class="metric-value" id="low-metric"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Avg Volume</div>
+            <div class="metric-value" id="volume-metric"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Volatility</div>
+            <div class="metric-value" id="volatility-metric"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Next Day Prediction</div>
+            <div class="metric-value prediction-badge" id="prediction-metric"></div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="stock-chart"></canvas>
+        </div>
+        <h3>Historical Data (Last 30 Days)</h3>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Close</th><th>Change</th><th>% Change</th></tr>
+          </thead>
+          <tbody id="history-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin + '/api';
+    let chartInstance = null;
+    const formatCurrency = v => new Intl.NumberFormat('en-US',{ style: 'currency', currency: 'USD' }).format(v);
+    const formatNumber = v => new Intl.NumberFormat('en-US').format(v);
+    const calculateChange = (data, idx) => idx === 0 ? { change: 0, percent: 0 } : (() => { const d = data.historical[idx].close - data.historical[idx - 1].close; return { change: d, percent: (d / data.historical[idx - 1].close) * 100 }; })();
+
+    async function loadCompanies() {
+      document.getElementById('companies-loading').style.display = 'block';
+      try {
+        const res = await fetch(`${API_BASE}/companies`);
+        const { companies } = await res.json();
+        renderCompanyList(companies);
+        companies.length && loadStockData(companies[0].symbol);
+      } catch (err) { console.error(err); }
+      finally { document.getElementById('companies-loading').style.display = 'none'; }
+    }
+
+    function renderCompanyList(companies) {
+      const list = document.getElementById('company-list');
+      list.innerHTML = '<div class="company-list-header"><h3>Companies</h3></div>';
+      companies.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'company';
+        div.dataset.symbol = c.symbol;
+        div.innerHTML = `
+          <div class="company-name"><strong>${c.symbol}</strong> - ${c.name}</div>
+          <div class="company-price">${formatCurrency(c.price)}
+            <span class="${c.change >= 0 ? 'up' : 'down'}">${
+            c.change >= 0 ? '+' : ''}${c.change.toFixed(2)} / ${c.changePercent.toFixed(2)}%</span>
+          </div>`;
+        div.onclick = () => loadStockData(c.symbol);
+        list.appendChild(div);
+      });
+    }
+
+    async function loadStockData(symbol) {
+      document.getElementById('stock-title').textContent = 'Loading...';
+      try {
+        const res = await fetch(`${API_BASE}/stock/${symbol}`);
+        const data = await res.json();
+        updateUI(data);
+        renderInteractiveChart(data);
+        updateHistory(data);
+        highlightActive(symbol);
+        document.getElementById('stock-card').style.display = 'block';
+      } catch (err) {
+        console.error(err);
+      }
+      document.getElementById('last-updated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+    }
+
+    function highlightActive(symbol) {
+      document.querySelectorAll('.company').forEach(el => el.classList.toggle('active', el.dataset.symbol === symbol));
+    }
+
+    function updateUI(data) {
+      document.getElementById('stock-title').textContent = `${data.name} (${data.symbol})`;
+      document.getElementById('stock-price').textContent = formatCurrency(data.current.price);
+      document.getElementById('change-metric').innerHTML = `<span class="${data.current.change >= 0 ? 'up' : 'down'}">${
+        data.current.change >= 0 ? '+' : ''}${data.current.change.toFixed(2)} (${data.current.changePercent.toFixed(2)}%)</span>`;
+      document.getElementById('high-metric').textContent = formatCurrency(data.analytics['52w_high']);
+      document.getElementById('low-metric').textContent = formatCurrency(data.analytics['52w_low']);
+      document.getElementById('volume-metric').textContent = formatNumber(data.analytics.avg_volume);
+      document.getElementById('volatility-metric').textContent = data.analytics.volatility.toFixed(2);
+      document.getElementById('prediction-metric').textContent = data.analytics.next_day_prediction;
+    }
+
+    function renderInteractiveChart(data) {
+      const ctx = document.getElementById('stock-chart').getContext('2d');
+      const labels = data.historical.map(d => d.date);
+      const prices = data.historical.map(d => d.close);
+
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: data.symbol,
+            data: prices,
+            fill: true,
+            backgroundColor: 'rgba(212,175,55,0.15)',
+            borderWidth: 2,
+            pointRadius: 0,
+            segment: {
+              borderColor: ctx => ctx.p0.parsed.y <= ctx.p1.parsed.y ? '#4ade80' : '#f87171'
+            },
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#555',
+            pointHoverBorderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'nearest',
+            intersect: false
+          },
+          events: ['click'],
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${formatCurrency(ctx.parsed.y)}`
+              }
+            }
+          },
+          onClick: (event, elements) => {
+            if (elements.length) {
+              const el = elements[0];
+              chartInstance.tooltip.setActiveElements([{ datasetIndex: el.datasetIndex, index: el.index }]);
+              chartInstance.update();
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#c0c0c0' },
+              grid: { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: {
+              ticks: { color: '#c0c0c0' },
+              grid: { color: 'rgba(255,255,255,0.1)' }
+            }
+          }
+        }
+      });
+    }
+
+    function updateHistory(data) {
+      const tbody = document.getElementById('history-table-body');
+      tbody.innerHTML = '';
+      data.historical.slice().reverse().forEach((d, i) => {
+        const idx = data.historical.length - 1 - i;
+        const ch = calculateChange(data, idx);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.date}</td><td>${formatCurrency(d.close)}</td> <td class="${ch.change >= 0 ? 'up' : 'down'}">
+          ${ch.change >= 0 ? '+' : ''}${ch.change.toFixed(2)}</td>
+        <td class="${ch.percent >= 0 ? 'up' : 'down'}">${ch.percent >= 0 ? '+' : ''}${ch.percent.toFixed(2)}%</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    loadCompanies();
+  </script>
+</body>
+</html>
