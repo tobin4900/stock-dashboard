@@ -16,7 +16,7 @@ A sleek stock market dashboard with a left-panel company list and a rich, intera
 ## Tech Stack
 **Frontend:** HTML, CSS, JavaScript, Chart.js  
 **Backend:** FastAPI, Uvicorn, SQLAlchemy, SQLite, Pandas, NumPy, yfinance  
-**Hosting:** Render (Free tier)
+**Hosting:** Render
 
 ## Run Locally
 ```bash
