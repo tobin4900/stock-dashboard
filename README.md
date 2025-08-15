@@ -1,4 +1,4 @@
-# StockInsight Pro — Black & Gold
+# StockInsight Pro
 
 A sleek stock market dashboard with a left-panel company list and a rich, interactive price chart. It serves a FastAPI backend that fetches live data via `yfinance`, caches per-day results in SQLite, and exposes REST endpoints consumed by a static frontend (Chart.js).
 
